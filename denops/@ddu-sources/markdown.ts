@@ -2,6 +2,7 @@ import {
   BaseSource,
   Context,
   Item,
+  SourceOptions,
 } from "https://deno.land/x/ddu_vim@v1.11.0/types.ts";
 import { Denops, fn } from "https://deno.land/x/ddu_vim@v1.11.0/deps.ts";
 import { ActionData } from "https://deno.land/x/ddu_kind_file@v0.3.1/file.ts";
@@ -20,6 +21,7 @@ type Params = {
 type Args = {
   denops: Denops;
   context: Context;
+  sourceOptions: SourceOptions;
   sourceParams: Params;
 };
 
@@ -27,7 +29,7 @@ export class Source extends BaseSource<Params> {
   kind = "file";
 
   gather(
-    { denops, context, sourceParams }: Args,
+    { denops, context, sourceOptions, sourceParams }: Args,
   ): ReadableStream<Item<ActionData>[]> {
     return new ReadableStream({
       async start(controller) {
@@ -55,13 +57,25 @@ export class Source extends BaseSource<Params> {
           if (!header) {
             continue;
           }
+          const path = header.hierarchy.join("/") + "/";
+          if (
+            !(sourceOptions.path.length == 0 && header.hierarchy.length == 0) &&
+            path != sourceOptions.path + "/"
+          ) {
+            continue;
+          }
 
           // Create chunk
           const chunk: Item<ActionData> = {
             word: getStyledWord(header, sourceParams.style),
+            display: header.content,
             action: {
               bufNr,
               lineNr: i + 1,
+              path: (header.hierarchy.length == 0)
+                ? header.content
+                : path + header.content,
+              isDirectory: true,
             },
             status: {
               size: i + 1,

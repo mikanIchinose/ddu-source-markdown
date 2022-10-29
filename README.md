@@ -1,4 +1,4 @@
-# ddu-source-makrdown
+# ddu-source-markdown
 
 markdown header source for ddu.vim
 
@@ -30,3 +30,4 @@ call ddu#custom#patch_global({
     \ })
 " Use source.
 call ddu#start({'sources': [{'name': 'markdown'}]})
+```
