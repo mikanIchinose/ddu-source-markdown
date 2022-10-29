@@ -65,17 +65,21 @@ export class Source extends BaseSource<Params> {
             continue;
           }
 
+          const isDirectory = headerRecords.find((record) => {
+            return header.hierarchy.concat([header.content]).toString() ==
+              record.hierarchy.toString();
+          }) != undefined;
+
           // Create chunk
           const chunk: Item<ActionData> = {
             word: getStyledWord(header, sourceParams.style),
-            display: header.content,
             action: {
               bufNr,
               lineNr: i + 1,
               path: (header.hierarchy.length == 0)
                 ? header.content
                 : path + header.content,
-              isDirectory: true,
+              isDirectory,
             },
             status: {
               size: i + 1,
