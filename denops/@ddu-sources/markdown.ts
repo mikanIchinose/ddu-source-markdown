@@ -3,10 +3,10 @@ import {
   Context,
   Item,
   SourceOptions,
-} from "https://deno.land/x/ddu_vim@v1.11.0/types.ts";
-import { Denops, equal, fn } from "https://deno.land/x/ddu_vim@v1.11.0/deps.ts";
+} from "https://deno.land/x/ddu_vim@v.1.13.0/types.ts";
+import { Denops, equal, fn } from "https://deno.land/x/ddu_vim@v.1.13.0/deps.ts";
 import { ActionData } from "https://deno.land/x/ddu_kind_file@v0.3.1/file.ts";
-import { parse } from "https://deno.land/std@0.159.0/path/mod.ts";
+import { parse } from "https://deno.land/std@0.161.0/path/mod.ts";
 import {
   MarkdownRecord,
   toRecords,
@@ -62,7 +62,7 @@ export class Source extends BaseSource<Params> {
             continue;
           }
 
-          const isDirectory = headerRecords.find((record) => {
+          const isTree = headerRecords.find((record) => {
             return equal(
               header.hierarchy.concat([header.content]),
               record.hierarchy,
@@ -75,16 +75,16 @@ export class Source extends BaseSource<Params> {
             action: {
               bufNr,
               lineNr: i + 1,
-              path: (header.hierarchy.length == 0)
-                ? header.content
-                : path + header.content,
-              isDirectory,
             },
             status: {
               size: i + 1,
             },
+            treePath: (header.hierarchy.length == 0)
+                ? header.content
+                : path + header.content,
             level: header.hierarchy.length,
             isExpanded: sourceOptions.path.length == 0,
+            isTree,
           };
           items.push(chunk);
 
