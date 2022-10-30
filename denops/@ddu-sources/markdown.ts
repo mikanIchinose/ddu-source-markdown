@@ -4,7 +4,7 @@ import {
   Item,
   SourceOptions,
 } from "https://deno.land/x/ddu_vim@v1.11.0/types.ts";
-import { Denops, fn } from "https://deno.land/x/ddu_vim@v1.11.0/deps.ts";
+import { Denops, equal, fn } from "https://deno.land/x/ddu_vim@v1.11.0/deps.ts";
 import { ActionData } from "https://deno.land/x/ddu_kind_file@v0.3.1/file.ts";
 import { parse } from "https://deno.land/std@0.159.0/path/mod.ts";
 import {
@@ -58,16 +58,15 @@ export class Source extends BaseSource<Params> {
             continue;
           }
           const path = header.hierarchy.join("/") + "/";
-          if (
-            !(sourceOptions.path.length == 0 && header.hierarchy.length == 0) &&
-            path != sourceOptions.path + "/"
-          ) {
+          if (sourceOptions.path.length != 0 && path != sourceOptions.path + "/") {
             continue;
           }
 
           const isDirectory = headerRecords.find((record) => {
-            return header.hierarchy.concat([header.content]).toString() ==
-              record.hierarchy.toString();
+            return equal(
+              header.hierarchy.concat([header.content]),
+              record.hierarchy,
+            );
           }) != undefined;
 
           // Create chunk
@@ -84,6 +83,8 @@ export class Source extends BaseSource<Params> {
             status: {
               size: i + 1,
             },
+            level: header.hierarchy.length,
+            isExpanded: sourceOptions.path.length == 0,
           };
           items.push(chunk);
 
