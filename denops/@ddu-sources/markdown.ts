@@ -4,7 +4,11 @@ import {
   Item,
   SourceOptions,
 } from "https://deno.land/x/ddu_vim@v.1.13.0/types.ts";
-import { Denops, equal, fn } from "https://deno.land/x/ddu_vim@v.1.13.0/deps.ts";
+import {
+  Denops,
+  equal,
+  fn,
+} from "https://deno.land/x/ddu_vim@v.1.13.0/deps.ts";
 import { ActionData } from "https://deno.land/x/ddu_kind_file@v0.3.1/file.ts";
 import { parse } from "https://deno.land/std@0.161.0/path/mod.ts";
 import {
@@ -58,7 +62,9 @@ export class Source extends BaseSource<Params> {
             continue;
           }
           const path = header.hierarchy.join("/") + "/";
-          if (sourceOptions.path.length != 0 && path != sourceOptions.path + "/") {
+          if (
+            sourceOptions.path.length != 0 && path != sourceOptions.path + "/"
+          ) {
             continue;
           }
 
@@ -76,12 +82,9 @@ export class Source extends BaseSource<Params> {
               bufNr,
               lineNr: i + 1,
             },
-            status: {
-              size: i + 1,
-            },
             treePath: (header.hierarchy.length == 0)
-                ? header.content
-                : path + header.content,
+              ? header.content
+              : path + header.content,
             level: header.hierarchy.length,
             isExpanded: sourceOptions.path.length == 0,
             isTree,
