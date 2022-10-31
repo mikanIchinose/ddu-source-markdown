@@ -2,10 +2,11 @@ import {
   BaseSource,
   Context,
   Item,
-} from "https://deno.land/x/ddu_vim@v1.11.0/types.ts";
-import { Denops, fn } from "https://deno.land/x/ddu_vim@v1.11.0/deps.ts";
+  SourceOptions,
+} from "https://deno.land/x/ddu_vim@v.1.13.0/types.ts";
+import { Denops, equal, fn } from "https://deno.land/x/ddu_vim@v.1.13.0/deps.ts";
 import { ActionData } from "https://deno.land/x/ddu_kind_file@v0.3.1/file.ts";
-import { parse } from "https://deno.land/std@0.159.0/path/mod.ts";
+import { parse } from "https://deno.land/std@0.161.0/path/mod.ts";
 import {
   MarkdownRecord,
   toRecords,
@@ -20,6 +21,7 @@ type Params = {
 type Args = {
   denops: Denops;
   context: Context;
+  sourceOptions: SourceOptions;
   sourceParams: Params;
 };
 
@@ -27,7 +29,7 @@ export class Source extends BaseSource<Params> {
   kind = "file";
 
   gather(
-    { denops, context, sourceParams }: Args,
+    { denops, context, sourceOptions, sourceParams }: Args,
   ): ReadableStream<Item<ActionData>[]> {
     return new ReadableStream({
       async start(controller) {
@@ -55,6 +57,17 @@ export class Source extends BaseSource<Params> {
           if (!header) {
             continue;
           }
+          const path = header.hierarchy.join("/") + "/";
+          if (sourceOptions.path.length != 0 && path != sourceOptions.path + "/") {
+            continue;
+          }
+
+          const isTree = headerRecords.find((record) => {
+            return equal(
+              header.hierarchy.concat([header.content]),
+              record.hierarchy,
+            );
+          }) != undefined;
 
           // Create chunk
           const chunk: Item<ActionData> = {
@@ -66,6 +79,12 @@ export class Source extends BaseSource<Params> {
             status: {
               size: i + 1,
             },
+            treePath: (header.hierarchy.length == 0)
+                ? header.content
+                : path + header.content,
+            level: header.hierarchy.length,
+            isExpanded: sourceOptions.path.length == 0,
+            isTree,
           };
           items.push(chunk);
 
