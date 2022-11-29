@@ -1,0 +1,74 @@
+*ddu-source-markdown.txt*	File source for ddu.vim
+
+Author: mikanIchinose <maruisansmai at gmail.com>
+License: MIT license
+
+CONTENTS					*ddu-source-markdown-contents*
+
+Introduction		|ddu-source-markdown-introduction|
+Install			|ddu-source-markdown-install|
+Examples		|ddu-source-markdown-examples|
+Params			|ddu-source-markdown-params|
+Faq			|ddu-source-markdown-faq|
+
+
+==============================================================================
+INTRODUCTION					*ddu-source-markdown-introduction*
+
+This source collects markdown header from current file.
+
+
+==============================================================================
+INSTALL						*ddu-source-markdown-install*
+
+Please install both "ddu.vim" and "denops.vim" and "ddu-kind-file".
+
+https://github.com/Shougo/ddu.vim
+https://github.com/vim-denops/denops.vim
+https://github.com/Shougo/ddu-kind-file
+
+
+==============================================================================
+EXAMPLES					*ddu-source-markdown-examples*
+>
+	" Change base path.
+	call ddu#custom#patch_global({
+            \   'sourceOptions' : {
+            \     'markdown' : {
+            \       'sorters': [],
+            \     },
+            \   },
+            \   'sourceParams' : {
+            \     'markdown' : {
+            \       'style': 'none',
+            \       'chunkSize': 5,
+            \       'limit': 1000,
+            \     },
+            \   },
+            \ })
+
+        " start ddu
+        call ddu#start({'sources': [{'name': 'markdown'}], 'ui': 'filer'})
+
+==============================================================================
+PARAMS						*ddu-source-markdown-params*
+
+						*ddu-source-file-param-new*
+style		(string)
+		item style "none"|"parent"|"sharp"
+
+		Default: none
+
+shunkSize	(number)
+
+		Default: 5
+
+limit		(number)
+
+		Default: 1000
+
+==============================================================================
+FREQUENTLY ASKED QUESTIONS (FAQ)		*ddu-source-markdown-faq*
+
+==============================================================================
+vim:tw=78:ts=8:ft=help:norl:noet:fen:noet:

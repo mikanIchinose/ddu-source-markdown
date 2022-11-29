@@ -20,14 +20,19 @@ https://github.com/Shougo/ddu-kind-file
 
 ```vim
 call ddu#custom#patch_global({
+    \   'sourceOptions' : {
+    \     'markdown' : {
+    \       'sorters': [],
+    \     },
+    \   },
     \   'sourceParams' : {
     \     'markdown' : {
-    \       'style': 'indent',
+    \       'style': 'none',
     \       'chunkSize': 5,
     \       'limit': 1000,
     \     },
     \   },
     \ })
-" Use source.
-call ddu#start({'sources': [{'name': 'markdown'}]})
-```
+
+" start ddu
+call ddu#start({'sources': [{'name': 'markdown'}], 'ui': 'filer'})
