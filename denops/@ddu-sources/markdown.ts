@@ -3,21 +3,21 @@ import {
   Context,
   Item,
   SourceOptions,
-} from "https://deno.land/x/ddu_vim@v.1.13.0/types.ts";
+} from "https://deno.land/x/ddu_vim@v2.0.0/types.ts";
 import {
   Denops,
   equal,
   fn,
 } from "https://deno.land/x/ddu_vim@v.1.13.0/deps.ts";
 import { ActionData } from "https://deno.land/x/ddu_kind_file@v0.3.1/file.ts";
-import { parse } from "https://deno.land/std@0.161.0/path/mod.ts";
+import { parse } from "https://deno.land/std@0.166.0/path/mod.ts";
 import {
   MarkdownRecord,
   toRecords,
 } from "https://deno.land/x/markdown_records@0.2.0/mod.ts";
 
 type Params = {
-  style: "parent" | "hash" | "indent";
+  style: "none" | "parent" | "sharp";
   chunkSize: number;
   limit: number;
 };
@@ -77,7 +77,7 @@ export class Source extends BaseSource<Params> {
 
           // Create chunk
           const chunk: Item<ActionData> = {
-            word: getStyledWord(header, sourceParams.style),
+            word: getStyledWord(header, sourceParams.style, isTree),
             action: {
               bufNr,
               lineNr: i + 1,
@@ -107,7 +107,7 @@ export class Source extends BaseSource<Params> {
 
   params(): Params {
     return {
-      style: "hash",
+      style: "none",
       chunkSize: 5,
       limit: 1000,
     };
@@ -120,20 +120,24 @@ const escapeRegex = (str: string): string => {
   return (str && reHasRegExp.test(str)) ? str.replace(reRegExp, "\\$&") : str;
 };
 
-const getStyledWord = (doc: MarkdownRecord, style: Params["style"]): string => {
+const getStyledWord = (
+  doc: MarkdownRecord,
+  style: Params["style"],
+  isParent: boolean,
+): string => {
   const level = doc.hierarchy.length + 1;
+  let word = doc.content;
+
   if (style === "parent") {
-    // parent-style
     doc.hierarchy.push(doc.content);
-    return doc.hierarchy.join("/");
-  } else if (style === "hash") {
-    // hash-style
-    return `${"#".repeat(level)} ${doc.content}`;
-  } else if (style === "indent") {
-    // indent-style
-    const indent = "  ".repeat(level - 1);
-    return `${indent}${doc.content}`;
-  } else {
-    return doc.content;
+    word = doc.hierarchy.join("/");
+  } else if (style === "sharp") {
+    word = `${"#".repeat(level)} ${doc.content}`;
   }
+
+  if (isParent) {
+    word = word + "/";
+  }
+
+  return word;
 };
