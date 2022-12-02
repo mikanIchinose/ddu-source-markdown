@@ -53,16 +53,18 @@ EXAMPLES					*ddu-source-markdown-examples*
 ==============================================================================
 PARAMS						*ddu-source-markdown-params*
 
-						*ddu-source-file-param-new*
+						*ddu-source-markdown-param-style*
 style		(string)
 		item style "none"|"parent"|"sharp"
 
 		Default: none
 
-shunkSize	(number)
+						*ddu-source-markdown-param-chunkSize*
+chunkSize	(number)
 
 		Default: 5
 
+						*ddu-source-markdown-param-limit*
 limit		(number)
 
 		Default: 1000
