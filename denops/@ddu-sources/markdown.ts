@@ -32,9 +32,12 @@ type Args = {
 export class Source extends BaseSource<Params> {
   kind = "file";
 
-  gather(
-    { denops, context, sourceOptions, sourceParams }: Args,
-  ): ReadableStream<Item<ActionData>[]> {
+  gather({
+    denops,
+    context,
+    sourceOptions,
+    sourceParams,
+  }: Args): ReadableStream<Item<ActionData>[]> {
     return new ReadableStream({
       async start(controller) {
         const bufNr = context.bufNr;
@@ -46,8 +49,9 @@ export class Source extends BaseSource<Params> {
         const lines = await fn.getbufline(denops, bufNr, 1, "$");
 
         // Parse mardown
-        const headerRecords = (await toRecords([...lines].join("\n")))
-          .filter((line) => line.kind === "heading");
+        const headerRecords = (await toRecords([...lines].join("\n"))).filter(
+          (line) => line.kind === "heading",
+        );
 
         let items: Item<ActionData>[] = [];
         const chunkSize = 5;
@@ -61,9 +65,11 @@ export class Source extends BaseSource<Params> {
           if (!header) {
             continue;
           }
+          // rome-ignore lint/style/useTemplate: <explanation>
           const path = header.hierarchy.join("/") + "/";
           if (
-            sourceOptions.path.length != 0 && path != sourceOptions.path + "/"
+            sourceOptions.path.length !== 0 &&
+            path !== sourceOptions.path + "/"
           ) {
             continue;
           }
@@ -73,7 +79,7 @@ export class Source extends BaseSource<Params> {
               header.hierarchy.concat([header.content]),
               record.hierarchy,
             );
-          }) != undefined;
+          }) !== undefined;
 
           // Create chunk
           const chunk: Item<ActionData> = {
@@ -82,11 +88,11 @@ export class Source extends BaseSource<Params> {
               bufNr,
               lineNr: i + 1,
             },
-            treePath: (header.hierarchy.length == 0)
+            treePath: header.hierarchy.length === 0
               ? header.content
               : path + header.content,
             level: header.hierarchy.length,
-            isExpanded: sourceOptions.path.length == 0,
+            isExpanded: sourceOptions.path.length === 0,
             isTree,
           };
           items.push(chunk);
@@ -137,7 +143,7 @@ const getStyledWord = (
   }
 
   if (isParent) {
-    word = word + "/";
+    word = `${word}/`;
   }
 
   return word;
