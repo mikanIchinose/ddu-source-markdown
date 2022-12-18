@@ -56,7 +56,7 @@ export class Source extends BaseSource<Params> {
 
           // Find header
           const header = headerRecords.find((record) => {
-            return escapeRegex(lines[i]).includes(record.content);
+            return lines[i].replace(/#* /, "") === record.content;
           });
           if (!header) {
             continue;
@@ -114,11 +114,12 @@ export class Source extends BaseSource<Params> {
   }
 }
 
-const reRegExp = /[\\^$.*+?()[\]{}|]/g;
-const reHasRegExp = new RegExp(reRegExp.source);
-const escapeRegex = (str: string): string => {
-  return (str && reHasRegExp.test(str)) ? str.replace(reRegExp, "\\$&") : str;
-};
+// 不要かもしれない
+// const reRegExp = /[\\^$.*+?()[\]{}|]/g;
+// const reHasRegExp = new RegExp(reRegExp.source);
+// const escapeRegex = (str: string): string => {
+//   return str && reHasRegExp.test(str) ? str.replace(reRegExp, "\\$&") : str;
+// };
 
 const getStyledWord = (
   doc: MarkdownRecord,
