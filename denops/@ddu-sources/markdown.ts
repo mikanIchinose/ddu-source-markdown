@@ -9,8 +9,8 @@ import {
   equal,
   fn,
 } from "https://deno.land/x/ddu_vim@v.1.13.0/deps.ts";
-import { ActionData } from "https://deno.land/x/ddu_kind_file@v0.3.1/file.ts";
-import { parse } from "https://deno.land/std@0.166.0/path/mod.ts";
+import { ActionData } from "https://deno.land/x/ddu_kind_file@v0.3.2/file.ts";
+import { parse } from "https://deno.land/std@0.168.0/path/mod.ts";
 import {
   MarkdownRecord,
   toRecords,
