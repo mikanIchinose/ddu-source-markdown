@@ -3,14 +3,14 @@ import {
   Context,
   Item,
   SourceOptions,
-} from "https://deno.land/x/ddu_vim@v2.0.0/types.ts";
+} from "https://deno.land/x/ddu_vim@v3.4.2/types.ts";
 import {
   Denops,
   equal,
   fn,
 } from "https://deno.land/x/ddu_vim@v.1.13.0/deps.ts";
-import { ActionData } from "https://deno.land/x/ddu_kind_file@v0.3.2/file.ts";
-import { parse } from "https://deno.land/std@0.168.0/path/mod.ts";
+import { ActionData } from "https://deno.land/x/ddu_kind_file@v0.5.3/file.ts";
+import { parse } from "https://deno.land/std@0.194.0/path/mod.ts";
 import {
   MarkdownRecord,
   toRecords,
@@ -49,13 +49,15 @@ export class Source extends BaseSource<Params> {
         const lines = await fn.getbufline(denops, bufNr, 1, "$");
 
         // Parse mardown
-        const headerRecords = (await toRecords([...lines].join("\n"))).filter(
-          (line) => line.kind === "heading",
-        );
+        const headerRecords = (await toRecords([...lines].join("\n")))
+          .filter((line) => line.kind === "heading");
 
         let items: Item<ActionData>[] = [];
         const chunkSize = 5;
+
+        // lineを走査する
         for (let i = 0; i < lines.length; i++) {
+          // ヘッダーが閾値を越えていれば終了
           if (i >= sourceParams.limit) break;
 
           // Find header
@@ -65,14 +67,19 @@ export class Source extends BaseSource<Params> {
           if (!header) {
             continue;
           }
-          // rome-ignore lint/style/useTemplate: <explanation>
           const path = header.hierarchy.join("/") + "/";
+
           if (
             sourceOptions.path.length !== 0 &&
             path !== sourceOptions.path + "/"
           ) {
             continue;
           }
+
+          const treePath = header.hierarchy.length === 0
+            ? header.content
+            : path + header.content;
+          console.log(treePath);
 
           const isTree = headerRecords.find((record) => {
             return equal(
@@ -88,24 +95,24 @@ export class Source extends BaseSource<Params> {
               bufNr,
               lineNr: i + 1,
             },
-            treePath: header.hierarchy.length === 0
-              ? header.content
-              : path + header.content,
-            level: header.hierarchy.length,
-            isExpanded: sourceOptions.path.length === 0,
-            isTree,
+            // ↓↓↓ tree feature
+            // treePath,
+            // level: header.hierarchy.length,
+            // isExpanded: sourceOptions.path.length === 0,
+            // isTree,
           };
           items.push(chunk);
 
-          if (items.length >= chunkSize) {
-            controller.enqueue(items);
-            items = [];
-          }
+          // if (items.length >= chunkSize) {
+          //   controller.enqueue(items);
+          //   items = [];
+          // }
         }
         if (items.length) {
+          console.dir(items, { depth: 100 });
           controller.enqueue(items);
+          items = [];
         }
-
         controller.close();
       },
     });
@@ -113,19 +120,12 @@ export class Source extends BaseSource<Params> {
 
   params(): Params {
     return {
-      style: "none",
+      style: "sharp",
       chunkSize: 5,
       limit: 1000,
     };
   }
 }
-
-// 不要かもしれない
-// const reRegExp = /[\\^$.*+?()[\]{}|]/g;
-// const reHasRegExp = new RegExp(reRegExp.source);
-// const escapeRegex = (str: string): string => {
-//   return str && reHasRegExp.test(str) ? str.replace(reRegExp, "\\$&") : str;
-// };
 
 const getStyledWord = (
   doc: MarkdownRecord,
@@ -142,9 +142,9 @@ const getStyledWord = (
     word = `${"#".repeat(level)} ${doc.content}`;
   }
 
-  if (isParent) {
-    word = `${word}/`;
-  }
+  // if (isParent) {
+  //   word = `${word}/`;
+  // }
 
   return word;
 };
