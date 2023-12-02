@@ -1,60 +1,43 @@
-import {
-  BaseSource,
-  Context,
-  Item,
-  SourceOptions,
-} from "https://deno.land/x/ddu_vim@v2.0.0/types.ts";
-import {
-  Denops,
-  equal,
-  fn,
-} from "https://deno.land/x/ddu_vim@v.1.13.0/deps.ts";
-import { ActionData } from "https://deno.land/x/ddu_kind_file@v0.3.2/file.ts";
-import { parse } from "https://deno.land/std@0.168.0/path/mod.ts";
+import { BaseSource, Item } from "https://deno.land/x/ddu_vim@v3.7.0/types.ts";
+import { GatherArguments } from "https://deno.land/x/ddu_vim@v3.7.0/base/source.ts";
+import { equal, fn } from "https://deno.land/x/ddu_vim@v3.7.0/deps.ts";
+import { ActionData } from "https://deno.land/x/ddu_kind_file@v0.7.1/file.ts";
+import { parse } from "https://deno.land/std@0.208.0/path/mod.ts";
 import {
   MarkdownRecord,
   toRecords,
 } from "https://deno.land/x/markdown_records@0.2.0/mod.ts";
 
 type Params = {
-  style: "none" | "parent" | "sharp";
-  chunkSize: number;
   limit: number;
-};
-
-type Args = {
-  denops: Denops;
-  context: Context;
-  sourceOptions: SourceOptions;
-  sourceParams: Params;
 };
 
 export class Source extends BaseSource<Params> {
   kind = "file";
 
-  gather({
+  override gather({
     denops,
     context,
     sourceOptions,
     sourceParams,
-  }: Args): ReadableStream<Item<ActionData>[]> {
+  }: GatherArguments<Params>): ReadableStream<Item<ActionData>[]> {
     return new ReadableStream({
       async start(controller) {
         const bufNr = context.bufNr;
-        const filePath = await fn.bufname(denops, bufNr);
 
         // Skip not markdown
+        const filePath = await fn.bufname(denops, bufNr);
         if (!parse(filePath).ext.includes("md")) return;
 
+        // バッファーのテキストを取得
         const lines = await fn.getbufline(denops, bufNr, 1, "$");
 
-        // Parse mardown
+        // Parse mardown and filter header
         const headerRecords = (await toRecords([...lines].join("\n"))).filter(
           (line) => line.kind === "heading",
         );
 
-        let items: Item<ActionData>[] = [];
-        const chunkSize = 5;
+        const items: Item<ActionData>[] = [];
         for (let i = 0; i < lines.length; i++) {
           if (i >= sourceParams.limit) break;
 
@@ -62,10 +45,8 @@ export class Source extends BaseSource<Params> {
           const header = headerRecords.find((record) => {
             return lines[i].replace(/#* /, "") === record.content;
           });
-          if (!header) {
-            continue;
-          }
-          // rome-ignore lint/style/useTemplate: <explanation>
+          if (!header) continue;
+
           const path = header.hierarchy.join("/") + "/";
           if (
             sourceOptions.path.length !== 0 &&
@@ -74,33 +55,26 @@ export class Source extends BaseSource<Params> {
             continue;
           }
 
-          const isTree = headerRecords.find((record) => {
-            return equal(
-              header.hierarchy.concat([header.content]),
-              record.hierarchy,
-            );
-          }) !== undefined;
+          //const isTree = headerRecords.find((record) => {
+          //  return equal(
+          //    header.hierarchy.concat([header.content]),
+          //    record.hierarchy,
+          //  );
+          //}) !== undefined;
 
-          // Create chunk
-          const chunk: Item<ActionData> = {
-            word: getStyledWord(header, sourceParams.style, isTree),
+          const item: Item<ActionData> = {
+            word: getStyledWord(header),
             action: {
               bufNr,
               lineNr: i + 1,
             },
-            treePath: header.hierarchy.length === 0
-              ? header.content
-              : path + header.content,
-            level: header.hierarchy.length,
-            isExpanded: sourceOptions.path.length === 0,
-            isTree,
+            //treePath: header.hierarchy.length === 0
+            //  ? header.content
+            //  : path + header.content,
+            //level: header.hierarchy.length,
+            //isTree: isTree,
           };
-          items.push(chunk);
-
-          if (items.length >= chunkSize) {
-            controller.enqueue(items);
-            items = [];
-          }
+          items.push(item);
         }
         if (items.length) {
           controller.enqueue(items);
@@ -113,38 +87,17 @@ export class Source extends BaseSource<Params> {
 
   params(): Params {
     return {
-      style: "none",
-      chunkSize: 5,
       limit: 1000,
     };
   }
 }
 
-// 不要かもしれない
-// const reRegExp = /[\\^$.*+?()[\]{}|]/g;
-// const reHasRegExp = new RegExp(reRegExp.source);
-// const escapeRegex = (str: string): string => {
-//   return str && reHasRegExp.test(str) ? str.replace(reRegExp, "\\$&") : str;
-// };
-
 const getStyledWord = (
-  doc: MarkdownRecord,
-  style: Params["style"],
-  isParent: boolean,
+  markdownRecord: MarkdownRecord,
 ): string => {
-  const level = doc.hierarchy.length + 1;
-  let word = doc.content;
-
-  if (style === "parent") {
-    doc.hierarchy.push(doc.content);
-    word = doc.hierarchy.join("/");
-  } else if (style === "sharp") {
-    word = `${"#".repeat(level)} ${doc.content}`;
-  }
-
-  if (isParent) {
-    word = `${word}/`;
-  }
+  const level = markdownRecord.hierarchy.length + 1;
+  let word = markdownRecord.content;
+  word = `${"#".repeat(level)} ${markdownRecord.content}`;
 
   return word;
 };
