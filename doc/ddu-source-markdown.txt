@@ -40,29 +40,20 @@ EXAMPLES					*ddu-source-markdown-examples*
             \   },
             \   'sourceParams' : {
             \     'markdown' : {
-            \       'style': 'none',
-            \       'chunkSize': 5,
             \       'limit': 1000,
             \     },
             \   },
             \ })
 
         " start ddu
-        call ddu#start({'sources': [{'name': 'markdown'}], 'ui': 'filer'})
+        call ddu#start(
+	    \ #{sources: [#{name: 'markdown'}],
+	    \ ui: 'filer',
+	    \ uiParam: #{filer: #{sort: 'none'}}
+	    \ })
 
 ==============================================================================
 PARAMS						*ddu-source-markdown-params*
-
-						*ddu-source-markdown-param-style*
-style		(string)
-		item style "none"|"parent"|"sharp"
-
-		Default: none
-
-						*ddu-source-markdown-param-chunkSize*
-chunkSize	(number)
-
-		Default: 5
 
 						*ddu-source-markdown-param-limit*
 limit		(number)
